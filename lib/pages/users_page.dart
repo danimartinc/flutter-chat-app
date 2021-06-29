@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+//Providers
+import 'package:chat_app/services/auth_service.dart';
 //Models
 import 'package:chat_app/models/user.dart';
 
@@ -27,14 +30,26 @@ class _UsersPageState extends State<UsersPage> {
 
   @override
   Widget build(BuildContext context) {
+
+    //Instancia del Provider de authService
+    final authService = Provider.of<AuthService>(context);
+    //Extraemos el usuario desde el authService
+    final user = authService.user;
+    
     return Scaffold(
       appBar: AppBar(
-        title: Text('Mi nombre', style: TextStyle( color: Colors.black87 ) ),
+        title: Text( user.name, style: TextStyle( color: Colors.black87 ) ),
         elevation: 1,
         backgroundColor: Colors.white,
         //Icono para retroceder en la Page
         leading: IconButton(
-          onPressed: () {}, 
+          onPressed: () {
+            //TODO: Deconectamos del SocketServer
+            //Realizamos la navegación hacia el LoginPage
+            Navigator.pushReplacementNamed( context, 'login' );
+            //Eliminamos el JWT del usuario autenticado para realizar el logout al borrar su información
+            AuthService.deleteToken();
+          }, 
           icon: Icon( Icons.exit_to_app, color: Colors.black87 ),
         ),
         actions: [

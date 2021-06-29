@@ -1,4 +1,8 @@
+import 'package:chat_app/helpers/show_alert.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+//Providers
+import 'package:chat_app/services/auth_service.dart';
 //Widgets
 import 'package:chat_app/widgets/custom_input.dart';
 import 'package:chat_app/widgets/logo.dart';
@@ -52,6 +56,11 @@ class  _FormState extends State<_Form> {
 
   @override
   Widget build(BuildContext context) {
+
+    //Implementamos el authService,
+    //Es necesario renderizar el Widget si cambia el valor de la propeidad y disparar el notifyListeners()
+    final authService = Provider.of<AuthService>( context );
+    
     return Container(
       margin: EdgeInsets.only( top: 40 ),
       padding: EdgeInsets.symmetric( horizontal: 50 ),
@@ -85,11 +94,26 @@ class  _FormState extends State<_Form> {
           ),
 
           BlueButton(
-            text: 'Iniciar sesión', 
-            onPressed: (){
-              print( emailController.text );
-              print( passwordController.text );
-            },
+            text: 'Crear cuenta', 
+            onPressed: authService.authenticating
+                        //En caso de que se esté autenticando
+                        ? null 
+                        : ()  async {
+                          print( nameController.text );
+                          print( emailController.text );
+                          print( passwordController.text );
+                          //Mediante trim() elimino los espacios en blanco
+                          final registerOK = await authService.register( nameController.text.trim(), emailController.text.trim(), passwordController.text.trim() );
+                          //Compruebo que si el registro se realiza correctamente
+                          if ( registerOK == true ) {
+                            //TODO: Conectar a Socket Server
+                            //socketService.connect();
+                            //Mediante pushReplacementNamed() realizo un reemplazo del login, para evitar que el usuario pueda volver al login
+                            Navigator.pushReplacementNamed( context, 'users' );
+                          } else {
+                            showAlert(context, 'Registro incorrecto', registerOK );
+                          }
+                        },
           )      
     ]  
   ),

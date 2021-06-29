@@ -9,7 +9,7 @@ import 'package:chat_app/pages/users_page.dart';
 
 //Map que contiene un string como key y contiene datos de tipo dynamic
 //WidgetBuilder, dado que es una función que retorna un Widget
-final Map<String, WidgetBuilder> appRoutes = {
+final Map<String, Widget Function(BuildContext)> appRoutes = {
 
   //Rutas principales de la app
   'users'    : ( _ ) => UsersPage(),
@@ -19,3 +19,7 @@ final Map<String, WidgetBuilder> appRoutes = {
   'loading'  : ( _ ) => LoadingPage(),
 
 };
+
+
+
+//CORS, peticiones CROSS domain

@@ -5,7 +5,7 @@ class BlueButton extends StatelessWidget {
 
   final String text;
   //Función para disparar el action del botón
-  final Function onPressed;
+  final Function()? onPressed;
 
   //Constructor
   const BlueButton({
@@ -17,10 +17,8 @@ class BlueButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton (
-      onPressed: () {
-        this.onPressed;
-      },
+    return ElevatedButton(
+      onPressed: onPressed,
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.symmetric(horizontal: 80.0, vertical: 15.0),
