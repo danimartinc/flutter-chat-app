@@ -5,6 +5,7 @@ import 'package:chat_app/routes/routes.dart';
 //Providers
 import 'package:chat_app/services/auth_service.dart';
 import 'package:chat_app/services/socket_service.dart';
+import 'package:chat_app/services/chat_Service.dart';
 
 
  
@@ -23,6 +24,10 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           //Instancia global del SocketService, que nos permite controlarlo como un Singleton, y notifica a los Widgets cuando es necesario volver a renderizar
           create: ( _ ) => SocketService()
+        ),
+        ChangeNotifierProvider(
+          //Instancia global del ChatService, que nos permite controlarlo como un Singleton, y notifica a los Widgets cuando es necesario volver a renderizar
+          create: ( _ ) => ChatService()
         ),
       ],
       child: MaterialApp(

@@ -1,20 +1,20 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:chat_app/global/environment.dart';
 //Storage
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 //Models
 import 'package:chat_app/models/user.dart';
 import 'package:chat_app/models/login_response.dart';
 
-import 'package:chat_app/global/environment.dart';
 
 //Nos permite expandir la comunicación con el Servidor en cualquier punto de la app, se puede utilziar de forma global
 //ChangeNotifier, permite indicar al Provider cuando tiene que refrescar la interfaz o volver a renderizar un componente, si se produce algún cambio o se quiere notificar a los clientes
 class AuthService with ChangeNotifier {
 
   //Información del usuario autenticado
-  User user = new User(uid: "", name: "", email: "", online: false );
+  User? user;
   //Nos indica cuando el usuario está realizando la autenticación
   bool _authenticating = false;
   

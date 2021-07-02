@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 //Providers
 import 'package:chat_app/services/auth_service.dart';
+import 'package:chat_app/services/socket_service.dart';
 //Widgets
 import 'package:chat_app/widgets/custom_input.dart';
 import 'package:chat_app/widgets/logo.dart';
@@ -61,6 +62,8 @@ class  _FormState extends State<_Form> {
     //Implementamos el authService,
     //Es necesario renderizar el Widget si cambia el valor de la propeidad y disparar el notifyListeners()
     final authService = Provider.of<AuthService>( context );
+    //Implemetamos el socketService
+    final socketService = Provider.of<SocketService>( context );
 
     return Container(
       margin: EdgeInsets.only( top: 40 ),
@@ -95,19 +98,18 @@ class  _FormState extends State<_Form> {
                           //Cuando el usuario selecciona el botón de Iniciar sesión, indicamos que se cierre el teclado
                           //Lo realizamos al quitar el focus sobre el teclado del dispositivo, y ocultamos el teclado
                           FocusScope.of(context).unfocus();
-                          print('Entra al loginView');
-                          print( emailController.text );
-                          print( passwordController.text );
+
                           //Mediante trim() elimino los espacios en blanco
                           final loginOK = await authService.login( emailController.text.trim(), passwordController.text.trim() );
 
                           //Compruebo si la autenticación se ha realizado correctamente
                           if( loginOK ){
-                            //TODO: Conectar a Socsket server
+                            //Conectar al Socket Server
+                            socketService.connect();
                             //Mediante pushReplacementNamed() realizo un reemplazo del login, para evitar que el usuario pueda volver al login
                             Navigator.pushReplacementNamed( context, 'users' );
                           }else{
-                            // TODO: Mostrar alerta
+                            //Mostrar alerta
                             showAlert( context, 'Login incorrecto', 'Compruebe si sus credenciales son correctas');
                           }
                         },

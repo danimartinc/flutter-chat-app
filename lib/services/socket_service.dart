@@ -28,21 +28,22 @@ class SocketService with ChangeNotifier {
   //Función que permite emitir un Socket
   Function get emit    => this._socket.emit;
 
-  //Constructor
-  SocketService(){
-    this._initConfig();
-  }
+  //Método que permite realizar la conexión del SocketService con el Backend
+  void connect() async {
 
-  void _initConfig() async {
-
+    //Obtenemos el JWT del usuario autenticado mediante AuthService, async-await ya que tenemos que esperar a que termine la conexión
+    // getToken(), regresa un Future con un String cuando obtiene la verificación del JWT
     final token = await AuthService.getToken();
     
-    // Dart client
+    //Realizamos la llamada al Socket mediante el path del Environment.socketURL
     this._socket = IO.io( Environment.socketURL, {
+      //Indicamos al Server que tipo de comunicacion realizamos
       'transports': ['websocket'],
       'autoConnect': true,
+      //Permite al realizar la autenticación por Sockets y la comuniación de Sockets, crear una nueva instancia cada vez que el cliente se conecte/desconecte
       'forceNew': true,
       'extraHeaders': {
+        //Mediante un map(), envio el JWT del usuario autenticado al realizar la conexión
         'x-token': token
       }
     });
@@ -51,7 +52,8 @@ class SocketService with ChangeNotifier {
     this._socket.onConnect( (_) {
       //Indicamos el Status del Servidor
       this._serverStatus = ServerStatus.Online;
-      print('Conectado por Socket');
+      print('Conectado al Socket Server');
+      //Notificamos a los listeners el estado del Cliente
       notifyListeners();
     });
 
@@ -65,7 +67,7 @@ class SocketService with ChangeNotifier {
 
   }
 
-
+  //Método para realizar la desconexión al Server Socket, lo implementamos cuando se realiza el logout
   void disconnect() {
     this._socket.disconnect();
   }

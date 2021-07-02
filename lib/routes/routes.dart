@@ -23,3 +23,5 @@ final Map<String, Widget Function(BuildContext)> appRoutes = {
 
 
 //CORS, peticiones CROSS domain
+
+//Provider encargado de cargar los mensajes del chat cuando el usuario accede al ChatPage, nos permite conocer a qué usuario le envio el chat, mediante el UID del usuario

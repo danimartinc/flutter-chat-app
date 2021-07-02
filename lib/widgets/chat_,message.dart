@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+//Providers
+import 'package:chat_app/services/auth_service.dart';
 
 class ChatMessage extends StatelessWidget {
 
@@ -17,6 +20,10 @@ class ChatMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    //Implementamos el authService
+    final authService = Provider.of<AuthService>(context, listen: false);
+
     //FadeTransition(), nos permite controlar la transicción del cambio de la opacidad
     return FadeTransition(
       opacity: animationController,
@@ -29,7 +36,7 @@ class ChatMessage extends StatelessWidget {
         child: Container(
           //Mediante el UID asociado al mensaje, diferenciamos entre los mensajes que envia el propio usuario, y los que vienen de otro emisor
           //Si el UID del usuario autenticado coincide con el mensaje mostramos myMessage()
-          child: this.uid == '123'
+          child: this.uid == authService.user!.uid
                     ? _myMessage()
                     //En caso contrario, mensaje enviado por otro usuario
                     : _notMyMessage(),

@@ -1,8 +1,18 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'dart:io';
 //Widgets
 import 'package:chat_app/widgets/chat_,message.dart';
+//Providers
+import 'package:chat_app/services/chat_Service.dart';
+import 'package:chat_app/services/auth_service.dart';
+import 'package:chat_app/services/socket_service.dart';
+//Models
+import 'package:chat_app/models/user.dart';
+import 'package:chat_app/models/messages_response.dart';
+
+
 
 
 class ChatPage extends StatefulWidget {
@@ -19,6 +29,10 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   //Permite controlar el focus en los Widgets
   final _focusNode      = new FocusNode();
 
+  late ChatService chatService;
+  late SocketService socketService;
+  late AuthService authService;
+
   //Lista de Mensajes
   List<ChatMessage> _messages = [];
 
@@ -26,20 +40,86 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   bool _isTyping = false;
 
   @override
+  void initState() {
+    super.initState();
+
+    //Implementamos el chatService
+    this.chatService   = Provider.of<ChatService>( context, listen: false );
+    //Implementamos el SocketService
+    this.socketService = Provider.of<SocketService>( context, listen: false );
+    //Implementamos el AuthService
+    this.authService   = Provider.of<AuthService>( context, listen: false );
+
+    //Mediante on(), escucho el evento personal-message desde el serverSocket
+    //Segundo argumento, data con la información
+    this.socketService.socket.on('personal-message', _listenMessage  );
+
+    //Cargamos el hsitorial de mensajes para cada chat
+    _loadHistory( this.chatService.receivingUser!.uid );
+  }
+
+  //Método para cargar el historial de cada conversación
+  void _loadHistory( String userID ) async {
+
+    List<Message> chat = await this.chatService.getChat( userID );
+
+    //Historial
+    final history = chat.map(( msg ) => new ChatMessage(
+      text: msg.message,
+      //UID del emisor del mensaje
+      uid: msg.from,
+      //..forward(), nos permite lanzar la animación
+      animationController: new AnimationController(vsync: this, duration: Duration( milliseconds: 0))..forward(),
+    ));
+
+    setState(() {
+      //Añado los mensajes del historial al listado de mensajes
+      _messages.insertAll(0, history);
+    });
+
+  }
+
+  //Método para 
+  void _listenMessage( dynamic payload ) {
+
+    // Verificamos que el mensaje sea para la conversacion actual
+    if ( payload['from'] != chatService.receivingUser!.uid ) return;
+
+    //Insercción del mensaje para mostarlo en pantalla
+    //Instancia del ChatMessage que se isnerta al array de mensajes
+    ChatMessage message = new ChatMessage(
+      text: payload['message'],
+      //UID del emisor del mensaje
+      uid: payload['from'],
+      animationController: AnimationController( vsync: this, duration: Duration(milliseconds: 300 )),
+    );
+
+    setState(() {
+      _messages.insert(0, message);
+    });
+    //Implementar animación
+    message.animationController.forward();
+
+  }
+
+  @override
   Widget build(BuildContext context) {
+
+    final User?  receivingUser = this.chatService.receivingUser;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: Column(
           children: [
             CircleAvatar(
-              //Iniciales del usuario
-              child: Text( 'Te', style: TextStyle( fontSize: 12 ) ),
+              //Iniciales del usuario conectado 
+              child: Text( receivingUser!.name.substring( 0,2 ), style: TextStyle( fontSize: 12 ) ),
               backgroundColor: Colors.blue[100],
               maxRadius: 14,
             ),
             SizedBox( height: 3 ),
-            Text('Jaycee Carroll', style: TextStyle( color: Colors.black87, fontSize: 12 ), )
+            Text( receivingUser.name, style: TextStyle( color: Colors.black87, fontSize: 12 ), )
           ],
         ),
         //Nos permite centrar el título en el AppBar()
@@ -165,7 +245,8 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     _focusNode.requestFocus();
 
     final newMessage = new ChatMessage(
-      uid: '123', 
+      //UID del usuario autenticado
+      uid: authService.user!.uid, 
       text: text,
       animationController: AnimationController( vsync: this, duration: Duration( milliseconds: 200 ) ),
     );
@@ -177,6 +258,17 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     newMessage.animationController.forward();
 
     setState(() { _isTyping = false; });
+
+    //Emito el mensaje al ServerSocket
+    this.socketService.emit('personal-message', {
+      //Dado que es un mensaje privado es necesario conocer el UID del receptro del mensaje
+      //from, emisor del mensaje, UID del usuario autenticado al cual pertenece el JWT
+      'from': this.authService.user!.uid,
+      //for, usuario que recibe el mensaje
+      'for': this.chatService.receivingUser!.uid,
+      'message': text
+
+    });
   }
 
   //Nos permite destruir el Widget tras implementarlo
@@ -188,7 +280,8 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
       message.animationController.dispose();
     }
 
-    //this.socketService.socket.off('mensaje-personal');
+    //Desconecto el evento personal-message cuando el usuario abandona el ChatPage
+    this.socketService.socket.off('personal-message');
     super.dispose();
   }
 

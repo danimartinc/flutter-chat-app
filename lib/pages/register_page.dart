@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 //Providers
 import 'package:chat_app/services/auth_service.dart';
+import 'package:chat_app/services/socket_service.dart';
 //Widgets
 import 'package:chat_app/widgets/custom_input.dart';
 import 'package:chat_app/widgets/logo.dart';
@@ -60,6 +61,9 @@ class  _FormState extends State<_Form> {
     //Implementamos el authService,
     //Es necesario renderizar el Widget si cambia el valor de la propeidad y disparar el notifyListeners()
     final authService = Provider.of<AuthService>( context );
+    //Implemetamos el socketService
+    final socketService = Provider.of<SocketService>( context );
+
     
     return Container(
       margin: EdgeInsets.only( top: 40 ),
@@ -99,15 +103,12 @@ class  _FormState extends State<_Form> {
                         //En caso de que se esté autenticando
                         ? null 
                         : ()  async {
-                          print( nameController.text );
-                          print( emailController.text );
-                          print( passwordController.text );
                           //Mediante trim() elimino los espacios en blanco
                           final registerOK = await authService.register( nameController.text.trim(), emailController.text.trim(), passwordController.text.trim() );
                           //Compruebo que si el registro se realiza correctamente
                           if ( registerOK == true ) {
-                            //TODO: Conectar a Socket Server
-                            //socketService.connect();
+                            //Conectar el cliente al SocketServer
+                            socketService.connect();
                             //Mediante pushReplacementNamed() realizo un reemplazo del login, para evitar que el usuario pueda volver al login
                             Navigator.pushReplacementNamed( context, 'users' );
                           } else {

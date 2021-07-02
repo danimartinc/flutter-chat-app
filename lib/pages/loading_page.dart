@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 //Providers
 import 'package:chat_app/services/auth_service.dart';
+import 'package:chat_app/services/socket_service.dart';
 //Pages
 import 'package:chat_app/pages/users_page.dart';
 import 'login_page.dart';
@@ -33,14 +34,15 @@ class LoadingPage extends StatelessWidget {
 
     //Obtenemos el authService, mediante la instancia de Provider
     final authService = Provider.of<AuthService>(context, listen: false);
-    //final socketService = Provider.of<SocketService>( context, listen: false );
+    //Implemetamos el socketService
+    final socketService = Provider.of<SocketService>( context, listen: false );
 
     //Nos llamar a isLoggedIn(), para verificar el JWT almacenado en el Storage y verificar contra el Backend si sigue siendo un Token válido
     final authenticated = await authService.isLoggedIn();
 
     if ( authenticated ) {
-      //TODO: Conectar al Socket Server
-      //socketService.connect();
+      //En el caso de que sea una autenticación válida, con un JWT válido, me conecto al SocketServer
+      socketService.connect();
       //Redirigo al UsersPage en el caso de que el usuario esté autenticado correctamente
       Navigator.pushReplacement(
         context,
